@@ -1,17 +1,23 @@
 package com.example.bolta_justin.member.service;
 
 import com.example.bolta_justin.global.dto.ResponseDTO;
+import com.example.bolta_justin.member.dto.LoginReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
 
 public interface MemberService {
 
-    public ResponseDTO memberSignup(SignupReqDTO signupReqDTO);
+    ResponseDTO memberSignup(SignupReqDTO signupReqDTO);
 
-    public boolean isValidEmail(String email);
+    boolean isValidEmail(String email);
 
-    public boolean checkEmailForm(String email);
+    boolean checkEmailForm(String email);
 
-    public boolean checkPasswordForm(String password);
+    boolean checkPasswordForm(String password);
 
-    public boolean checkContactForm(String contact);
+    boolean checkContactForm(String contact);
+
+    ResponseDTO memberLogin(LoginReqDTO loginReqDTO);
+
+    boolean checkPassword(String inputPassword, String encodedPassword);
+
 }

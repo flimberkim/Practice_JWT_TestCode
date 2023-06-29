@@ -62,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String refreshHeader = request.getHeader("REFRESH");
 
         String uri = request.getRequestURI();
-        if(permitUrl.containsKey(uri) || uri.startsWith("/terms/")){
+        if(permitUrl.containsKey(uri)){
             filterChain.doFilter(request, response);
             return;
         }
