@@ -1,10 +1,13 @@
 package com.example.bolta_justin.member.service.impl;
 
+import com.example.bolta_justin.Token.entity.Token;
+import com.example.bolta_justin.Token.repository.TokenRepository;
 import com.example.bolta_justin.global.dto.ResponseDTO;
 import com.example.bolta_justin.global.jwt.JwtProperties;
 import com.example.bolta_justin.global.jwt.JwtUtil;
 import com.example.bolta_justin.member.dto.LoginReqDTO;
 import com.example.bolta_justin.member.dto.LoginResDTO;
+import com.example.bolta_justin.member.dto.LogoutReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
 import com.example.bolta_justin.member.entity.Member;
 import com.example.bolta_justin.member.repository.MemberRepository;
@@ -22,6 +25,7 @@ import java.util.regex.Pattern;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
@@ -146,6 +150,25 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean checkPassword(String inputPassword, String encodedPassword) {
         return passwordEncoder.matches(inputPassword, encodedPassword);
+    }
+
+    @Override
+    public ResponseDTO memberLogout(LogoutReqDTO logoutReqDTO) {
+        String accessToken = jwtUtil.extractToken(logoutReqDTO.getAuthorizationHeader());
+        String refreshToken = jwtUtil.extractToken(logoutReqDTO.getRefreshHeader());
+
+        Token blackAccessToken = new Token(accessToken);
+        Token blackRefreshToken = new Token(refreshToken);
+
+        tokenRepository.save(blackAccessToken);
+        tokenRepository.save(blackRefreshToken);
+
+        return ResponseDTO.builder()
+                .stateCode(200)
+                .success(true)
+                .message("로그아웃 성공")
+                .data(null)
+                .build();
     }
 
 

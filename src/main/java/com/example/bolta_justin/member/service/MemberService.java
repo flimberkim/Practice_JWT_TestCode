@@ -2,6 +2,7 @@ package com.example.bolta_justin.member.service;
 
 import com.example.bolta_justin.global.dto.ResponseDTO;
 import com.example.bolta_justin.member.dto.LoginReqDTO;
+import com.example.bolta_justin.member.dto.LogoutReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
 
 public interface MemberService {
@@ -19,5 +20,7 @@ public interface MemberService {
     ResponseDTO memberLogin(LoginReqDTO loginReqDTO);
 
     boolean checkPassword(String inputPassword, String encodedPassword);
+
+    ResponseDTO memberLogout(LogoutReqDTO logoutReqDTO);
 
 }
