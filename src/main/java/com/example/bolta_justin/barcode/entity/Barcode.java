@@ -1,4 +1,4 @@
-package com.example.bolta_justin.barcode;
+package com.example.bolta_justin.barcode.entity;
 
 import lombok.*;
 
