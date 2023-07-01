@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @Builder
 public class LogoutReqDTO {
-    private String authorizationHeader;
-    private String refreshHeader;
+    private String blackAccessToken;
+    private String blackRefreshToken;
 }

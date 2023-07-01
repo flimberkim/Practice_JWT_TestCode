@@ -1,6 +1,7 @@
 package com.example.bolta_justin.global.config;
 
 import com.example.bolta_justin.Token.repository.TokenRepository;
+import com.example.bolta_justin.Token.service.TokenService;
 import com.example.bolta_justin.global.jwt.JwtFilter;
 import com.example.bolta_justin.global.jwt.JwtProperties;
 import com.example.bolta_justin.global.jwt.JwtUtil;
@@ -26,11 +27,12 @@ public class SecurityConfig {
     /**
      * 토큰을 사용하지 않는 허용 url
      */
-    String[] permitUrl = {"/member/login","/member/signup","/h2-console"};
+    String[] permitUrl = {"/member/login","/member/signup","/h2-console/**"};
 
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
     private final TokenRepository tokenRepository;
+    private final TokenService tokenService;
 
 
     @Bean
@@ -56,7 +58,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
                 .and()
-                .addFilterBefore(JwtFilter.of(jwtUtil, jwtProperties, tokenRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(JwtFilter.of(jwtUtil, jwtProperties, tokenRepository, tokenService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(JwtExceptionFilter.of(jwtUtil, jwtProperties), JwtFilter.class)
                 .build();
     }

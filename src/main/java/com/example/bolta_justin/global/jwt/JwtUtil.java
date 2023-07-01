@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Date;
 
@@ -41,8 +43,8 @@ public class JwtUtil {
         String token = "";
         Claims claims = null;
         try {
-            token = extractToken(authorizationHeader);
-            claims = parsingToken(token);
+            token = authorizationHeader.replace("Bearer ", "");
+            claims = parseToken(token);
             return new LoginResDTO(claims);
         } catch (Exception e) {
             throw new JwtUtilException(JwtUtilExceptionType.INVALID_TOKEN);
@@ -52,14 +54,22 @@ public class JwtUtil {
     /**
      * Bearer 빼고 토큰값만 가져오는 메서드
      */
-    public String extractToken(String authorizationHeader) {
-        return authorizationHeader.substring(jwtProperties.getTokenPrefix().length());
+    //request header 파싱
+    public String parseHeader(HttpServletRequest request, String type){
+        String authorization = request.getHeader(type);
+
+        //토큰 검증 후 파싱하기
+        if(StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")){
+            return authorization.replace("Bearer ","");
+        }
+
+        return null;
     }
 
     /**
      * Token 값을 Claims로 바꿔주는 메서드
      */
-    public Claims parsingToken(String token) {
+    public Claims parseToken(String token) {
         try {
             return Jwts.parser()
                     .setSigningKey(jwtProperties.getSecretKey())

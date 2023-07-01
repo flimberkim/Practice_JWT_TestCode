@@ -1,7 +1,7 @@
 package com.example.bolta_justin.global.jwt;
 
-import com.example.bolta_justin.Token.entity.Token;
 import com.example.bolta_justin.Token.repository.TokenRepository;
+import com.example.bolta_justin.Token.service.TokenService;
 import com.example.bolta_justin.global.dto.ResponseDTO;
 import com.example.bolta_justin.global.jwt.exception.JwtUtilException;
 import com.example.bolta_justin.global.jwt.exception.JwtUtilExceptionType;
@@ -14,7 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -23,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Component
 @Getter
@@ -35,7 +33,6 @@ public class JwtFilter extends OncePerRequestFilter {
     private HashMap<String, String> permitUrl = new HashMap<>(){{
         put("/member/login","permit");
         put("/member/signup","permit");
-        put("/h2-console","permit");
     }};
 
 
@@ -43,26 +40,28 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
     private final TokenRepository tokenRepository;
+    private final TokenService tokenService;
     @Autowired
-    public JwtFilter(JwtUtil jwtUtil, JwtProperties jwtProperties, TokenRepository tokenRepository) {
+    public JwtFilter(JwtUtil jwtUtil, JwtProperties jwtProperties, TokenRepository tokenRepository, TokenService tokenService) {
         this.jwtUtil = jwtUtil;
         this.jwtProperties = jwtProperties;
         this.tokenRepository = tokenRepository;
+        this.tokenService = tokenService;
     }
 
-    public static JwtFilter of(JwtUtil jwtUtil,JwtProperties jwtProperties, TokenRepository tokenRepository) {
-        return new JwtFilter(jwtUtil, jwtProperties, tokenRepository);
+    public static JwtFilter of(JwtUtil jwtUtil,JwtProperties jwtProperties, TokenRepository tokenRepository, TokenService tokenService){
+        return new JwtFilter(jwtUtil, jwtProperties, tokenRepository, tokenService);
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("JWT filter run");
 //
-        String tokenStr = parseHeader(request, HttpHeaders.AUTHORIZATION);
+        String tokenStr = jwtUtil.parseHeader(request, HttpHeaders.AUTHORIZATION);
         String refreshHeader = request.getHeader("REFRESH");
 
         String uri = request.getRequestURI();
-        if(permitUrl.containsKey(uri)){
+        if(permitUrl.containsKey(uri) || uri.startsWith("/h2-console")){
             filterChain.doFilter(request, response);
             return;
         }
@@ -70,7 +69,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if(tokenStr != null && !tokenStr.equalsIgnoreCase("null")){
 
             //black list 체크
-            if(checkBlackList(tokenStr, response)) return;
+            if(tokenService.checkBlackList(tokenStr, response)) return;
             //access token 만료시간 체크
             if(jwtUtil.isTokenExpired(tokenStr, jwtProperties.getSecretKey())) {
                 //refresh header 있는지 여부 확인
@@ -78,8 +77,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     throw new JwtUtilException(JwtUtilExceptionType.ACCESS_TOKEN_EXPIRATION_DATE);
                 }
                 //refresh token
-                String refresh = parseHeader(request, "REFRESH");
-                if(checkBlackList(refresh, response)) return;
+                String refresh = jwtUtil.parseHeader(request, "REFRESH");
+                if(tokenService.checkBlackList(refresh, response)) return;
                 if(jwtUtil.isTokenExpired(refresh, jwtProperties.getSecretKey())){
                     throw new JwtUtilException(JwtUtilExceptionType.REFRESH_TOKEN_EXPIRATION_DATE);
                 }
@@ -112,27 +111,18 @@ public class JwtFilter extends OncePerRequestFilter {
         throw new JwtUtilException(JwtUtilExceptionType.USER_ACCESS_TOKEN_UN_AUTHORIZED);
     }
 
-    //request header 파싱
-    public String parseHeader(HttpServletRequest request, String type){
-        String authorization = request.getHeader(type);
 
-        //토큰 검증 후 파싱하기
-        if(StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")){
-            return authorization.replace("Bearer ","");
-        }
-
-        return null;
-    }
 
     //블랙리스트에 있는 토큰인지 확인(사용할 수 없는 토큰)
-    public boolean checkBlackList(String token, HttpServletResponse response) throws IOException {
-        Optional<Token> check = tokenRepository.findByToken(token);
-
-        if(check.isPresent()){
-            //login페이지로 redirect하라는 response
-            response.sendRedirect("/member/login");
-            return true;
-        }
-        return false;
-    }
+//    public boolean checkBlackList(String token, HttpServletResponse response) throws IOException {
+//        Token check = tokenRepository.findByToken(token).orElse(null);
+//
+//
+//        if(!Objects.isNull(check)){
+//            //login페이지로 redirect하라는 response
+//            response.sendRedirect("/member/login");
+//            return true;
+//        }
+//        return false;
+//    }
 }

@@ -1,6 +1,7 @@
 package com.example.bolta_justin.member.controller;
 
 import com.example.bolta_justin.global.dto.ResponseDTO;
+import com.example.bolta_justin.global.jwt.JwtUtil;
 import com.example.bolta_justin.member.dto.LoginReqDTO;
 import com.example.bolta_justin.member.dto.LogoutReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 회원가입
@@ -40,9 +42,11 @@ public class MemberController {
     @PostMapping("/logout")
     public ResponseDTO memberLogout(HttpServletRequest request){
         LogoutReqDTO logoutReqDTO = LogoutReqDTO.builder()
-                .authorizationHeader(request.getHeader(HttpHeaders.AUTHORIZATION))
-                .refreshHeader(request.getHeader("REFRESH"))
+                .blackAccessToken(jwtUtil.parseHeader(request,HttpHeaders.AUTHORIZATION))
+                .blackRefreshToken(jwtUtil.parseHeader(request, "REFRESH"))
                 .build();
         return memberService.memberLogout(logoutReqDTO);
     }
+
+
 }

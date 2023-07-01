@@ -1,6 +1,6 @@
 package com.example.bolta_justin.member.entity;
 
-import com.example.bolta_justin.barcode.Barcode;
+import com.example.bolta_justin.barcode.entity.Barcode;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,14 +18,14 @@ import javax.persistence.*;
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_identifier", length = 9)
-    private Integer identifier; // PK
+    @Column(name = "member_identifier", length = 9, unique = true)
+    private Integer identifier; // 회원식별번호
 
     @OneToOne
     @JoinColumn(name = "barcode_id")
     private Barcode barcode; // 바코드
 
-    @Column(name = "member_email")
+    @Column(name = "member_email", unique = true)
     private String email; // 이메일
 
     @Column(name = "member_password")

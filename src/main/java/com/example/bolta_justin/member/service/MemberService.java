@@ -5,6 +5,7 @@ import com.example.bolta_justin.member.dto.LoginReqDTO;
 import com.example.bolta_justin.member.dto.LogoutReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
 
+
 public interface MemberService {
 
     ResponseDTO memberSignup(SignupReqDTO signupReqDTO);
@@ -22,5 +23,7 @@ public interface MemberService {
     boolean checkPassword(String inputPassword, String encodedPassword);
 
     ResponseDTO memberLogout(LogoutReqDTO logoutReqDTO);
+
+
 
 }

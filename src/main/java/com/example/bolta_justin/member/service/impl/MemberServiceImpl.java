@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -154,11 +155,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public ResponseDTO memberLogout(LogoutReqDTO logoutReqDTO) {
-        String accessToken = jwtUtil.extractToken(logoutReqDTO.getAuthorizationHeader());
-        String refreshToken = jwtUtil.extractToken(logoutReqDTO.getRefreshHeader());
 
-        Token blackAccessToken = new Token(accessToken);
-        Token blackRefreshToken = new Token(refreshToken);
+        Token blackAccessToken = Token.builder().token(logoutReqDTO.getBlackAccessToken()).build();
+        Token blackRefreshToken = Token.builder().token(logoutReqDTO.getBlackRefreshToken()).build();
 
         tokenRepository.save(blackAccessToken);
         tokenRepository.save(blackRefreshToken);

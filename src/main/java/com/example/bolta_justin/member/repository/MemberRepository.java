@@ -9,4 +9,5 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     Optional<Member> findByEmail(String email);
     Optional<Member> findByIdentifier(Integer identifier);
     Boolean existsMemberByEmail(String email);
+
 }
