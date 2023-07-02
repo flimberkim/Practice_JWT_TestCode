@@ -1,6 +1,7 @@
 package com.example.bolta_justin.point.entity;
 
-import com.example.bolta_justin.barcode.Barcode;
+import com.example.bolta_justin.barcode.entity.Barcode;
+import com.example.bolta_justin.partner.entity.Partner;
 import com.example.bolta_justin.partner.enums.PartnerType;
 import com.example.bolta_justin.point.enums.UseType;
 import lombok.*;
@@ -29,16 +30,13 @@ public class Point {
     @JoinColumn(name = "barcode_id")
     private Barcode barcode; // 바코드
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "partner_id")
+    private Partner partner; // 가맹점
+
     @Column(name = "point_type")
     @Enumerated(EnumType.STRING)
     private UseType useType; // 포인트 사용 타입
-
-    @Column(name = "point_category")
-    @Enumerated(EnumType.STRING)
-    private PartnerType partnerType; // 포인트 사용 업종
-
-    @Column(name = "point_partner_name")
-    private String partnerName; // 포인트 사용 가맹점 이름
 
     @CreatedDate
     @Column(name = "point_date", updatable = false)
