@@ -24,6 +24,8 @@ public interface MemberService {
 
     ResponseDTO memberLogout(LogoutReqDTO logoutReqDTO);
 
+    ResponseDTO getIdentifier(String email);
 
+    String formatNumber(int number);
 
 }

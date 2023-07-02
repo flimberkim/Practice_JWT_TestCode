@@ -8,6 +8,7 @@ import com.example.bolta_justin.member.dto.SignupReqDTO;
 import com.example.bolta_justin.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +47,16 @@ public class MemberController {
                 .blackRefreshToken(jwtUtil.parseHeader(request, "REFRESH"))
                 .build();
         return memberService.memberLogout(logoutReqDTO);
+    }
+
+    /**
+     * 본인의 고유식별자 조회
+     */
+    @GetMapping("/identifier")
+    public ResponseDTO getIdentifier(HttpServletRequest request){
+        String accessToken = jwtUtil.parseHeader(request, HttpHeaders.AUTHORIZATION);
+        String email = jwtUtil.getUserEmail(accessToken);
+        return memberService.getIdentifier(email);
     }
 
 

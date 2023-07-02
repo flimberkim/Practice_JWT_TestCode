@@ -170,5 +170,23 @@ public class MemberServiceImpl implements MemberService {
                 .build();
     }
 
+    @Override
+    public ResponseDTO getIdentifier(String email) {
+        Member findMember = memberRepository.findByEmail(email).orElseThrow();
+        String identifier = formatNumber(findMember.getIdentifier());
+
+        return ResponseDTO.builder()
+                .stateCode(200)
+                .success(true)
+                .message("식별번호 조회 성공")
+                .data(identifier)
+                .build();
+    }
+
+    @Override
+    public String formatNumber(int number) {
+        return String.format("%09d", number);
+    }
+
 
 }
