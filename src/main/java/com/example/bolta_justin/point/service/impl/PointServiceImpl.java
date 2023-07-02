@@ -1,18 +1,26 @@
 package com.example.bolta_justin.point.service.impl;
 
 import com.example.bolta_justin.barcode.entity.Barcode;
+import com.example.bolta_justin.barcode.exception.BarcodeException;
+import com.example.bolta_justin.barcode.exception.BarcodeExceptionType;
 import com.example.bolta_justin.barcode.repository.BarcodeRepository;
 import com.example.bolta_justin.global.dto.ResponseDTO;
 import com.example.bolta_justin.global.jwt.JwtUtil;
 import com.example.bolta_justin.member.entity.Member;
+import com.example.bolta_justin.member.exception.MemberException;
+import com.example.bolta_justin.member.exception.MemberExceptionType;
 import com.example.bolta_justin.member.repository.MemberRepository;
 import com.example.bolta_justin.member.service.MemberService;
 import com.example.bolta_justin.partner.entity.Partner;
 import com.example.bolta_justin.partner.enums.PartnerType;
+import com.example.bolta_justin.partner.exception.PartnerException;
+import com.example.bolta_justin.partner.exception.PartnerExceptionType;
 import com.example.bolta_justin.partner.repository.PartnerRepository;
 import com.example.bolta_justin.point.dto.*;
 import com.example.bolta_justin.point.entity.Point;
 import com.example.bolta_justin.point.enums.UseType;
+import com.example.bolta_justin.point.exception.PointException;
+import com.example.bolta_justin.point.exception.PointExceptionType;
 import com.example.bolta_justin.point.repository.PointRepository;
 import com.example.bolta_justin.point.service.PointService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +51,8 @@ public class PointServiceImpl implements PointService {
 
         int pointAmount = pointUseReqDTO.getPointAmount();
 
-        Partner findPartner = partnerRepository.findById(partnerId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가맹점입니다."));
-        Barcode findBarcode = barcodeRepository.findByBarcode(pointBarcode).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 바코드입니다."));
+        Partner findPartner = partnerRepository.findById(partnerId).orElseThrow(() -> new PartnerException(PartnerExceptionType.PARTNER_NOT_FOUND));
+        Barcode findBarcode = barcodeRepository.findByBarcode(pointBarcode).orElseThrow(() -> new BarcodeException(BarcodeExceptionType.BARCODE_NOT_FOUND));
 
         findBarcode = applyToBarcode(findBarcode, findPartner.getPartnerType(), pointUseType, pointAmount);
 
@@ -87,15 +96,15 @@ public class PointServiceImpl implements PointService {
 
         switch (partnerType){
             case A:
-                if(resultBarcode.getAPoint() + pointToSum < 0) throw new IllegalArgumentException("포인트가 부족합니다.");
+                if(resultBarcode.getAPoint() + pointToSum < 0) throw new BarcodeException(BarcodeExceptionType.BARCODE_SHORTAGE);
                 resultBarcode.setAPoint(resultBarcode.getAPoint() + pointToSum);
                 break;
             case B:
-                if(resultBarcode.getBPoint() + pointToSum < 0) throw new IllegalArgumentException("포인트가 부족합니다.");
+                if(resultBarcode.getBPoint() + pointToSum < 0) throw new BarcodeException(BarcodeExceptionType.BARCODE_SHORTAGE);
                 resultBarcode.setBPoint(resultBarcode.getBPoint() + pointToSum);
                 break;
             case C:
-                if(resultBarcode.getCPoint() + pointToSum < 0) throw new IllegalArgumentException("포인트가 부족합니다.");
+                if(resultBarcode.getCPoint() + pointToSum < 0) throw new BarcodeException(BarcodeExceptionType.BARCODE_SHORTAGE);
                 resultBarcode.setCPoint(resultBarcode.getCPoint() + pointToSum);
                 break;
         }
@@ -121,8 +130,10 @@ public class PointServiceImpl implements PointService {
     @Override
     public ResponseDTO getMyPoint(String accessToken) {
         Integer identifier = jwtUtil.getIdentifier(accessToken);
-        Member findMember = memberRepository.findByIdentifier(identifier).orElseThrow();
+        Member findMember = memberRepository.findByIdentifier(identifier).orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
         Barcode findBarcode = findMember.getBarcode();
+
+        if(findBarcode == null) throw new BarcodeException(BarcodeExceptionType.BARCODE_NOT_FOUND);
 
         return ResponseDTO.builder()
                 .stateCode(200)
@@ -139,7 +150,7 @@ public class PointServiceImpl implements PointService {
 
     @Override
     public ResponseDTO getBarcodePoint(String barcode) {
-        Barcode findBarcode = barcodeRepository.findByBarcode(barcode).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 바코드입니다."));
+        Barcode findBarcode = barcodeRepository.findByBarcode(barcode).orElseThrow(() -> new BarcodeException(BarcodeExceptionType.BARCODE_NOT_FOUND));
 
         return ResponseDTO.builder()
                 .stateCode(200)
@@ -158,9 +169,17 @@ public class PointServiceImpl implements PointService {
     public Page<PointListResDTO> getPointList(PointListReqDTO pointListReqDTO, Pageable pageable) {
         String startDate = pointListReqDTO.getStartDate();
         String endDate = pointListReqDTO.getEndDate();
+        String DATE_TIME_PATTERN = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$";
+        Barcode barcode = barcodeRepository.findByBarcode(pointListReqDTO.getBarcode()).orElseThrow(() -> new BarcodeException(BarcodeExceptionType.BARCODE_NOT_FOUND));
+        if(!Pattern.matches(DATE_TIME_PATTERN, startDate) || !Pattern.matches(DATE_TIME_PATTERN, endDate)){
+            throw new PointException(PointExceptionType.POINT_INVALID_PERIOD_TYPE);
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        return pointRepository.findAllByPointDateBetween(LocalDateTime.parse(startDate, formatter), LocalDateTime.parse(endDate, formatter), pageable)
+        if(LocalDateTime.parse(startDate, formatter).isAfter(LocalDateTime.parse(endDate, formatter))) throw new PointException(PointExceptionType.POINT_INVALID_DATE_ORDER);
+
+        return pointRepository.findAllByPointDateBetweenAndBarcode(LocalDateTime.parse(startDate, formatter), LocalDateTime.parse(endDate, formatter), barcode, pageable)
                 .map(PointListResDTO::new);
     }
 }

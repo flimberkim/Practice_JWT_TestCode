@@ -69,7 +69,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if(tokenStr != null && !tokenStr.equalsIgnoreCase("null")){
 
             //black list 체크
-            if(tokenService.checkBlackList(tokenStr, response)) return;
+            if(tokenService.checkBlackList(tokenStr, response)) throw new JwtUtilException(JwtUtilExceptionType.INVALID_TOKEN);
             //access token 만료시간 체크
             if(jwtUtil.isTokenExpired(tokenStr, jwtProperties.getSecretKey())) {
                 //refresh header 있는지 여부 확인
@@ -78,7 +78,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
                 //refresh token
                 String refresh = jwtUtil.parseHeader(request, "REFRESH");
-                if(tokenService.checkBlackList(refresh, response)) return;
+                if(tokenService.checkBlackList(refresh, response)) throw new JwtUtilException(JwtUtilExceptionType.INVALID_TOKEN);
                 if(jwtUtil.isTokenExpired(refresh, jwtProperties.getSecretKey())){
                     throw new JwtUtilException(JwtUtilExceptionType.REFRESH_TOKEN_EXPIRATION_DATE);
                 }
@@ -108,21 +108,6 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        throw new JwtUtilException(JwtUtilExceptionType.USER_ACCESS_TOKEN_UN_AUTHORIZED);
+        throw new JwtUtilException(JwtUtilExceptionType.ACCESS_TOKEN_UN_AUTHORIZED);
     }
-
-
-
-    //블랙리스트에 있는 토큰인지 확인(사용할 수 없는 토큰)
-//    public boolean checkBlackList(String token, HttpServletResponse response) throws IOException {
-//        Token check = tokenRepository.findByToken(token).orElse(null);
-//
-//
-//        if(!Objects.isNull(check)){
-//            //login페이지로 redirect하라는 response
-//            response.sendRedirect("/member/login");
-//            return true;
-//        }
-//        return false;
-//    }
 }

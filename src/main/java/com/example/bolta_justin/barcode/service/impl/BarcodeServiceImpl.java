@@ -2,11 +2,14 @@ package com.example.bolta_justin.barcode.service.impl;
 
 import com.example.bolta_justin.barcode.dto.BarcodeReqDTO;
 import com.example.bolta_justin.barcode.entity.Barcode;
+import com.example.bolta_justin.barcode.exception.BarcodeException;
+import com.example.bolta_justin.barcode.exception.BarcodeExceptionType;
 import com.example.bolta_justin.barcode.repository.BarcodeRepository;
 import com.example.bolta_justin.barcode.service.BarcodeService;
 import com.example.bolta_justin.global.dto.ResponseDTO;
-import com.example.bolta_justin.global.jwt.JwtUtil;
 import com.example.bolta_justin.member.entity.Member;
+import com.example.bolta_justin.member.exception.MemberException;
+import com.example.bolta_justin.member.exception.MemberExceptionType;
 import com.example.bolta_justin.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +19,6 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class BarcodeServiceImpl implements BarcodeService {
-    private final JwtUtil jwtUtil;
     private final MemberRepository memberRepository;
     private final BarcodeRepository barcodeRepository;
 
@@ -37,11 +39,10 @@ public class BarcodeServiceImpl implements BarcodeService {
     public ResponseDTO createBarcode(BarcodeReqDTO barcodeReqDTO) {
 
         Integer identifierToInt = Integer.valueOf(barcodeReqDTO.getIdentifier());
-        Member findMember = memberRepository.findByIdentifier(identifierToInt).orElseThrow();
+        Member findMember = memberRepository.findByIdentifier(identifierToInt).orElseThrow(()-> new MemberException(MemberExceptionType.MEMBER_IDENTIFIER_NOT_FOUND));
 
         if(findMember.getBarcode() == null){
             //바코드 생성 후 바코드 테이블에 저장하고 그 엔티티 멤버에 저장
-
             Barcode barcode = Barcode.builder()
                     .barcode(barcodeGenerator())
                     .aPoint(0)
@@ -72,14 +73,9 @@ public class BarcodeServiceImpl implements BarcodeService {
 
     @Override
     public ResponseDTO getBarcode(Integer identifier) {
-        Member findMember = memberRepository.findByIdentifier(identifier).orElseThrow();
+        Member findMember = memberRepository.findByIdentifier(identifier).orElseThrow(()-> new MemberException(MemberExceptionType.MEMBER_IDENTIFIER_NOT_FOUND));
         if(findMember.getBarcode() == null){
-            return ResponseDTO.builder()
-                    .stateCode(404)
-                    .success(false)
-                    .message("바코드가 존재하지 않습니다. 바코드를 발급받으세요.")
-                    .data(null)
-                    .build();
+            throw new BarcodeException(BarcodeExceptionType.BARCODE_NOT_FOUND);
         }
         return ResponseDTO.builder()
                 .stateCode(200)

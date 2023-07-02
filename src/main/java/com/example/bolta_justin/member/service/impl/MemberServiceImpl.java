@@ -10,6 +10,8 @@ import com.example.bolta_justin.member.dto.LoginResDTO;
 import com.example.bolta_justin.member.dto.LogoutReqDTO;
 import com.example.bolta_justin.member.dto.SignupReqDTO;
 import com.example.bolta_justin.member.entity.Member;
+import com.example.bolta_justin.member.exception.MemberException;
+import com.example.bolta_justin.member.exception.MemberExceptionType;
 import com.example.bolta_justin.member.repository.MemberRepository;
 import com.example.bolta_justin.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -48,45 +50,19 @@ public class MemberServiceImpl implements MemberService {
         String contact = signupReqDTO.getContact();
 
         if(email == null || password == null || contact == null){
-            return ResponseDTO.builder()
-                    .stateCode(400)
-                    .success(false)
-                    .message("모든 정보를 입력해주세요.")
-                    .data(null)
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_INFORMATION_REQUIRED);
         }
-
         if(!isValidEmail(email)){
-            return ResponseDTO.builder()
-                    .stateCode(400)
-                    .success(false)
-                    .message("이미 존재하는 이메일입니다.")
-                    .data(null)
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_ALREADY_EXISTS);
         }
         if(!checkEmailForm(email)){
-            return ResponseDTO.builder()
-                    .stateCode(400)
-                    .success(false)
-                    .message("잘못된 이메일 형식입니다.")
-                    .data(null)
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_EMAIL_FORM);
         }
         if(!checkPasswordForm(password)){
-            return ResponseDTO.builder()
-                    .stateCode(400)
-                    .success(false)
-                    .message("비밀번호는 5자리 이상의 문자와 숫자를 포함해주세요.")
-                    .data(null)
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_PASSWORD_FORM);
         }
         if(!checkContactForm(contact)){
-            return ResponseDTO.builder()
-                    .stateCode(400)
-                    .success(false)
-                    .message("000-0000-0000 형식으로 입력해 주세요.")
-                    .data(null)
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_CONTACT_FORM);
         }
         signupReqDTO.setPassword(passwordEncoder.encode(signupReqDTO.getPassword()));
         memberRepository.save(signupReqDTO.toEntity());
@@ -118,23 +94,13 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(readOnly = true)
     public ResponseDTO memberLogin(LoginReqDTO loginReqDTO) {
         if(!memberRepository.existsMemberByEmail(loginReqDTO.getEmail())){
-            return ResponseDTO.builder()
-                    .stateCode(401)
-                    .success(false)
-                    .message("존재하지 않는 아이디(이메일)입니다.")
-                    .data("INVALID_EMAIL")
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_NOT_FOUND);
         }
 
-        Member findMember = memberRepository.findByEmail(loginReqDTO.getEmail()).orElseThrow();
+        Member findMember = memberRepository.findByEmail(loginReqDTO.getEmail()).orElseThrow(()->new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
 
         if(!checkPassword(loginReqDTO.getPassword(), findMember.getPassword())){
-            return ResponseDTO.builder()
-                    .stateCode(401)
-                    .success(false)
-                    .message("비밀번호가 일치하지 않습니다.")
-                    .data("INVALID_PASSWORD")
-                    .build();
+            throw new MemberException(MemberExceptionType.MEMBER_INVALID_PASSWORD);
         }
 
         String accessToken = jwtUtil.createAccessToken(findMember.getEmail(), jwtProperties.getSecretKey(), "USER", findMember.getIdentifier());
@@ -172,7 +138,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public ResponseDTO getIdentifier(String email) {
-        Member findMember = memberRepository.findByEmail(email).orElseThrow();
+        Member findMember = memberRepository.findByEmail(email).orElseThrow(()->new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
         String identifier = formatNumber(findMember.getIdentifier());
 
         return ResponseDTO.builder()

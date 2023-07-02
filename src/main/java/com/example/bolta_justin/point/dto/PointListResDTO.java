@@ -1,11 +1,8 @@
 package com.example.bolta_justin.point.dto;
 
-import com.example.bolta_justin.partner.enums.PartnerType;
 import com.example.bolta_justin.point.entity.Point;
-import com.example.bolta_justin.point.enums.UseType;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Getter
