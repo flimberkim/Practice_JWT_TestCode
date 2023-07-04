@@ -6,7 +6,7 @@ public enum MemberExceptionType implements CustomExceptionType {
 
     MEMBER_NOT_FOUND(404, "존재하지 않는 회원입니다. 회원가입을 진행하세요."),
     MEMBER_IDENTIFIER_NOT_FOUND(404, "존재하지 않는 식별번호 입니다."),
-    MEMBER_INFORMATION_REQUIRED(400, "회원정보(이메일, 비밀번호, 연락처)를 모두 입력해주세요."),
+    MEMBER_INFORMATION_REQUIRED(400, "회원정보(이메일, 비밀번호, 이름, 연락처)를 모두 입력해주세요."),
     MEMBER_ALREADY_EXISTS(409, "이미 존재하는 회원입니다."),
     MEMBER_EMAIL_FORM(400, "이메일 형식이 올바르지 않습니다."),
     MEMBER_PASSWORD_FORM(400, "비밀번호 형식이 올바르지 않습니다. 5자리 이상 문자와 숫자를 포함해주세요."),

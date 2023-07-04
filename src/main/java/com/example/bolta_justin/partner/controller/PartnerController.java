@@ -16,14 +16,6 @@ public class PartnerController {
     private final PartnerService partnerService;
 
     /**
-     * 가맹점 등록(관리자) -> 나중에 하기
-     */
-//    @PostMapping("/partners")
-//    public ResponseDTO registerPartner(){
-//        return null;
-//    }
-
-    /**
      * 전체 가맹점 조회
      */
     @GetMapping("/partners")
@@ -43,7 +35,7 @@ public class PartnerController {
     /**
      * 가맹점 이름으로 조회
      */
-    @GetMapping("/partners/names")
+    @PostMapping("/partners/names")
     public Page<PartnerDTO> searchPartnersByName(@RequestBody PartnerDTO partnerDTO,
                                                  @PageableDefault Pageable pageable){
 

@@ -5,8 +5,10 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@Setter
 public class PointUseResDTO {
     private String barcode;
     private String pointUseType;

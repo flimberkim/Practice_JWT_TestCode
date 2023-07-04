@@ -5,6 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Builder
 public class PartnerDTO {
     private String partnerType;

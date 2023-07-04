@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 
 import java.util.Optional;
@@ -44,12 +45,13 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public ResponseDTO memberSignup(SignupReqDTO signupReqDTO) {
+    public ResponseDTO memberSignup(SignupReqDTO signupReqDTO) throws MemberException {
         String email = signupReqDTO.getEmail();
         String password = signupReqDTO.getPassword();
+        String name = signupReqDTO.getName();
         String contact = signupReqDTO.getContact();
 
-        if(email == null || password == null || contact == null){
+        if(ObjectUtils.isEmpty(email) || ObjectUtils.isEmpty(password) || ObjectUtils.isEmpty(name) || ObjectUtils.isEmpty(contact)){
             throw new MemberException(MemberExceptionType.MEMBER_INFORMATION_REQUIRED);
         }
         if(!isValidEmail(email)){

@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Setter
 public class PointListReqDTO {
     private String startDate;
     private String endDate;

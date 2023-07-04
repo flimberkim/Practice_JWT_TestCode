@@ -45,7 +45,7 @@ public class PointController {
     /**
      * 멤버십 바코드의 현재 사용 가능 포인트 조회
      */
-    @GetMapping("/points/barcodes")
+    @PostMapping("/points/barcodes")
     public ResponseDTO getBarcodePoint(@RequestBody PointAvailableReqDTO pointAvailableReqDTO){
         return pointService.getBarcodePoint(pointAvailableReqDTO.getMemberBarcode());
     }
@@ -53,7 +53,7 @@ public class PointController {
     /**
      * 멤버십 바코드의 포인트 사용 내역 조회
      */
-    @GetMapping("/points/uselists")
+    @PostMapping("/points/uselists")
     public Page<PointListResDTO> getPointList(@RequestBody PointListReqDTO pointListReqDTO, @PageableDefault Pageable pageable){
         return pointService.getPointList(pointListReqDTO, pageable);
     }
